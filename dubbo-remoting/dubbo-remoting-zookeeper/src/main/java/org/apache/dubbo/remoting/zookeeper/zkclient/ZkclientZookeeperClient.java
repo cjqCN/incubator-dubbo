@@ -77,6 +77,22 @@ public class ZkclientZookeeperClient extends AbstractZookeeperClient<IZkChildLis
     }
 
     @Override
+    protected void createPersistent(String path, String data) {
+        try {
+            client.createPersistent(path, data);
+        } catch (ZkNodeExistsException e) {
+        }
+    }
+
+    @Override
+    protected void createEphemeral(String path, String data) {
+        try {
+            client.createEphemeral(path, data);
+        } catch (ZkNodeExistsException e) {
+        }
+    }
+
+    @Override
     public void delete(String path) {
         try {
             client.delete(path);
@@ -108,19 +124,22 @@ public class ZkclientZookeeperClient extends AbstractZookeeperClient<IZkChildLis
     }
 
     @Override
+    public String doGetContent(String path) {
+        try {
+            return client.getData(path);
+        } catch (ZkNoNodeException e) {
+            return null;
+        }
+    }
+
+    @Override
     public void doClose() {
         client.close();
     }
 
     @Override
     public IZkChildListener createTargetChildListener(String path, final ChildListener listener) {
-        return new IZkChildListener() {
-            @Override
-            public void handleChildChange(String parentPath, List<String> currentChilds)
-                    throws Exception {
-                listener.childChanged(parentPath, currentChilds);
-            }
-        };
+        return listener::childChanged;
     }
 
     @Override
